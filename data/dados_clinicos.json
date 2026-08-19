@@ -9,10 +9,12 @@
         },
         {
           "nome": "Visita 2 (Baseline)",
-          "dias": 30,
+          "dias": 20,
           "janela": 5
         }
-      ]
+      ],
+      "nome_entrada": "Pré-Triagem",
+      "visita_d0": "Visita 1 (Screening)"
     },
     "Estudo Beta": {
       "visitas": [
@@ -31,7 +33,9 @@
           "dias": 90,
           "janela": 10
         }
-      ]
+      ],
+      "nome_entrada": "Triagem",
+      "visita_d0": "Triagem"
     },
     "Estudo 01": {
       "visitas": [
@@ -45,7 +49,9 @@
           "dias": 30,
           "janela": 5
         }
-      ]
+      ],
+      "nome_entrada": "Triagem",
+      "visita_d0": "Triagem"
     }
   },
   "pacientes": [
@@ -54,7 +60,7 @@
       "nome": "Voluntário A",
       "estudo": "Estudo Alfa",
       "d0": "2026-08-10",
-      "fase_index": 0,
+      "fase_index": 1,
       "observacoes": ""
     },
     {
@@ -97,6 +103,60 @@
     }
   },
   "log_auditoria": [
+    {
+      "timestamp": "2026-08-19 12:16:40",
+      "usuario": "Admin",
+      "acao": "Edição de Protocolo",
+      "detalhes": "Protocolo do estudo 'Estudo Alfa' foi atualizado. Entrada: Pré-Triagem, D0: Visita 1 (Screening)"
+    },
+    {
+      "timestamp": "2026-08-19 12:11:01",
+      "usuario": "Admin",
+      "acao": "Avanço de Fase",
+      "detalhes": "Participante 'Voluntário A' avançou de 'Pré-Triagem' para 'Visita 1 (Screening)'."
+    },
+    {
+      "timestamp": "2026-08-19 12:00:07",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-19 11:47:16",
+      "usuario": "Admin",
+      "acao": "Edição de Protocolo",
+      "detalhes": "Protocolo do estudo 'Estudo Alfa' foi atualizado. Entrada: Pré-Triagem, D0: Visita 1 (Screening)"
+    },
+    {
+      "timestamp": "2026-08-19 11:43:57",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-19 11:05:24",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-19 11:01:46",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-19 10:33:53",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-19 10:30:39",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
     {
       "timestamp": "2026-08-19 08:53:51",
       "usuario": "Admin",

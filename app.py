@@ -166,19 +166,35 @@ def carregar_dados():
                 }
             ]
             
+        # Migração: Garante nome_entrada e visita_d0 em todos os estudos cadastrados
+        if "estudos" in dados:
+            for est_nome, est_info in dados["estudos"].items():
+                if "nome_entrada" not in est_info:
+                    est_info["nome_entrada"] = "Triagem"
+                if "visita_d0" not in est_info:
+                    est_info["visita_d0"] = est_info["nome_entrada"]
+
         return dados
     else:
         dados_padrao = {
             "estudos": {
-                "Estudo Alfa": {"visitas": [
-                    {"nome": "Visita 1 (Screening)", "dias": 7,  "janela": 3},
-                    {"nome": "Visita 2 (Baseline)",  "dias": 30, "janela": 5},
-                ]},
-                "Estudo Beta": {"visitas": [
-                    {"nome": "Triagem",           "dias": 14, "janela": 5},
-                    {"nome": "Avaliação Parcial", "dias": 45, "janela": 7},
-                    {"nome": "Follow-up Final",   "dias": 90, "janela": 10},
-                ]},
+                "Estudo Alfa": {
+                    "nome_entrada": "Triagem",
+                    "visita_d0": "Triagem",
+                    "visitas": [
+                        {"nome": "Visita 1 (Screening)", "dias": 7,  "janela": 3},
+                        {"nome": "Visita 2 (Baseline)",  "dias": 30, "janela": 5},
+                    ]
+                },
+                "Estudo Beta": {
+                    "nome_entrada": "Triagem",
+                    "visita_d0": "Triagem",
+                    "visitas": [
+                        {"nome": "Triagem",           "dias": 14, "janela": 5},
+                        {"nome": "Avaliação Parcial", "dias": 45, "janela": 7},
+                        {"nome": "Follow-up Final",   "dias": 90, "janela": 10},
+                    ]
+                },
             },
             "pacientes": [
                 {"id": 1, "nome": "Voluntário A", "estudo": "Estudo Alfa", "d0": "2026-08-10", "fase_index": 0, "observacoes": ""},
@@ -287,8 +303,15 @@ HOJE = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 def get_visitas(estudo: str) -> list:
     return st.session_state.estudos.get(estudo, {}).get("visitas", [])
 
+def get_nome_entrada(estudo: str) -> str:
+    return st.session_state.estudos.get(estudo, {}).get("nome_entrada", "Triagem")
+
+def get_visita_d0(estudo: str) -> str:
+    return st.session_state.estudos.get(estudo, {}).get("visita_d0", get_nome_entrada(estudo))
+
 def get_fases(estudo: str) -> list:
-    return ["D0 (Inclusão)"] + [v["nome"] for v in get_visitas(estudo)] + ["Concluído"]
+    nome_ent = get_nome_entrada(estudo)
+    return [nome_ent] + [v["nome"] for v in get_visitas(estudo)] + ["Concluído"]
 
 def calcular_status(data_alvo: datetime, janela: int):
     dias = (data_alvo - HOJE).days
@@ -360,7 +383,11 @@ with st.sidebar:
                     elif nome in st.session_state.estudos:
                         st.error("Estudo já existe.")
                     else:
-                        st.session_state.estudos[nome] = {"visitas": list(VISITAS_PADRAO)}
+                        st.session_state.estudos[nome] = {
+                            "nome_entrada": "Triagem",
+                            "visita_d0": "Triagem",
+                            "visitas": []
+                        }
                         registrar_log("Criação de Estudo", f"Estudo '{nome}' criado com visitas padrão.")
                         persistir()
                         st.success(f"Estudo '{nome}' criado!")
@@ -372,10 +399,26 @@ with st.sidebar:
                     estudo_editar = st.selectbox("Selecione o estudo:", lista_estudos, key="sel_estudo_editar_cfg")
                     if estudo_editar:
                         st.caption(f"Configurando visitas de: {estudo_editar}")
+                        
+                        est_info = st.session_state.estudos[estudo_editar]
+                        nome_entrada_atual = est_info.get("nome_entrada", "Triagem")
+                        visita_d0_atual = est_info.get("visita_d0", nome_entrada_atual)
                         visitas_atuais = get_visitas(estudo_editar)
-
+                        
+                        col_cfg1, col_cfg2 = st.columns(2)
+                        
+                        nome_entrada_options = ["Pré-Triagem", "Triagem", "Recrutado/TCLE", "Randomizado"]
+                        default_ne_idx = nome_entrada_options.index(nome_entrada_atual) if nome_entrada_atual in nome_entrada_options else 1
+                        
+                        nome_entrada_edit = col_cfg1.selectbox(
+                            "Nome do Dia de Entrada:",
+                            nome_entrada_options,
+                            index=default_ne_idx,
+                            key=f"ne_{estudo_editar}_cfg"
+                        )
+                        
                         num_v = st.number_input(
-                            "Quantidade de visitas pós-D0:", min_value=1, max_value=15,
+                            "Quantidade de visitas no protocolo:", min_value=0, max_value=15,
                             value=len(visitas_atuais), key=f"nv_{estudo_editar}_cfg"
                         )
 
@@ -388,13 +431,28 @@ with st.sidebar:
 
                                 nome_v = st.text_input("Nome do Marco:", value=nome_p, key=f"vn_{estudo_editar}_{i}_cfg")
                                 c1, c2 = st.columns(2)
-                                dias_v = c1.number_input("Dias pós D0:", min_value=1, value=dias_p, key=f"vd_{estudo_editar}_{i}_cfg")
+                                dias_v = c1.number_input("Dias relativos ao D0:", value=dias_p, key=f"vd_{estudo_editar}_{i}_cfg")
                                 jan_v  = c2.number_input("Janela ±dias:", min_value=0, value=jan_p, key=f"vj_{estudo_editar}_{i}_cfg")
                                 novas_visitas.append({"nome": nome_v, "dias": int(dias_v), "janela": int(jan_v)})
 
+                        # Escolha da visita D0 de referência
+                        opcoes_d0 = [nome_entrada_edit] + [v["nome"] for v in novas_visitas]
+                        default_d0_idx = 0
+                        if visita_d0_atual in opcoes_d0:
+                            default_d0_idx = opcoes_d0.index(visita_d0_atual)
+                        
+                        visita_d0_edit = col_cfg2.selectbox(
+                            "Visita de Referência (D0):",
+                            opcoes_d0,
+                            index=default_d0_idx,
+                            key=f"vd0_{estudo_editar}_cfg"
+                        )
+
                         if st.button("💾 Salvar Protocolo", key=f"salvar_{estudo_editar}_cfg"):
+                            st.session_state.estudos[estudo_editar]["nome_entrada"] = nome_entrada_edit
+                            st.session_state.estudos[estudo_editar]["visita_d0"] = visita_d0_edit
                             st.session_state.estudos[estudo_editar]["visitas"] = novas_visitas
-                            registrar_log("Edição de Protocolo", f"Protocolo do estudo '{estudo_editar}' foi atualizado.")
+                            registrar_log("Edição de Protocolo", f"Protocolo do estudo '{estudo_editar}' foi atualizado. Entrada: {nome_entrada_edit}, D0: {visita_d0_edit}")
                             persistir()
                             st.success("Protocolo salvo!")
                             st.rerun()
@@ -522,10 +580,12 @@ with st.sidebar:
     else:
         with st.expander("➕ Novo Participante", expanded=False):
             if lista_estudos:
+                novo_estudo = st.selectbox("Estudo para o participante:", lista_estudos, key="sel_estudo_novo_paciente")
+                nome_ent = get_nome_entrada(novo_estudo)
+                
                 with st.form("form_paciente", clear_on_submit=True):
                     novo_nome   = st.text_input("Identificação/Iniciais:", placeholder="Ex: J.S.M.")
-                    novo_estudo = st.selectbox("Estudo:", lista_estudos)
-                    nova_d0     = st.date_input("Data do D0:", datetime.today())
+                    nova_d0     = st.date_input(f"Data de {nome_ent}:", datetime.today())
                     nova_obs    = st.text_area("Observações:", height=60, placeholder="Anotações...")
                     submit      = st.form_submit_button("📥 Inserir Participante")
 
@@ -542,7 +602,7 @@ with st.sidebar:
                                 "observacoes": nova_obs.strip()
                             }
                             st.session_state.pacientes.append(novo_p)
-                            registrar_log("Cadastro de Participante", f"Cadastrado '{novo_nome.strip()}' (ID:{novo_p['id']}) no estudo '{novo_estudo}' com D0 '{nova_d0}'")
+                            registrar_log("Cadastro de Participante", f"Cadastrado '{novo_nome.strip()}' (ID:{novo_p['id']}) no estudo '{novo_estudo}' com entrada em '{nova_d0}'")
                             persistir()
                             st.success(f"{novo_nome} adicionado!")
                             st.rerun()
@@ -581,9 +641,23 @@ for p in st.session_state.pacientes:
     estudo    = p["estudo"]
     visitas   = get_visitas(estudo)
     fases     = get_fases(estudo)
-    d0_dt     = datetime.strptime(p["d0"], "%Y-%m-%d")
-    fi        = min(p["fase_index"], len(fases) - 1)
-    fase_atual = fases[fi]
+    
+    nome_entrada = get_nome_entrada(estudo)
+    visita_d0    = get_visita_d0(estudo)
+    
+    data_entrada_dt = datetime.strptime(p["d0"], "%Y-%m-%d")
+    fi              = min(p["fase_index"], len(fases) - 1)
+    fase_atual      = fases[fi]
+
+    # Calcular D0 de referência
+    offset_d0 = 0
+    if visita_d0 != nome_entrada:
+        for v in visitas:
+            if v["nome"] == visita_d0:
+                offset_d0 = v["dias"]
+                break
+    
+    d0_dt = data_entrada_dt + timedelta(days=offset_d0)
 
     info = {
         "ID": p["id"],
@@ -599,37 +673,49 @@ for p in st.session_state.pacientes:
         info["Status"] = "✅ Concluído"
         info["status_key"] = "done"
     else:
-        visita_idx = fi - 1  # fase 0 = D0, fase 1 = visita[0], etc.
+        visita_idx = fi - 1  # fase 0 = nome_entrada, fase 1 = visitas[0], etc.
         if 0 <= visita_idx < len(visitas):
             v_cfg = visitas[visita_idx]
-            data_alvo = d0_dt + timedelta(days=v_cfg["dias"])
+            if v_cfg["nome"] == visita_d0:
+                data_alvo = d0_dt
+            else:
+                data_alvo = d0_dt + timedelta(days=v_cfg["dias"])
+                
             st_key, dias_r, texto = calcular_status(data_alvo, v_cfg["janela"])
             info["Status"] = texto
             info["Dias Restantes"] = dias_r
             info["status_key"] = st_key
         else:
-            info["Status"] = "📋 Em D0"
+            info["Status"] = f"📋 Em {nome_entrada}"
             info["status_key"] = "ok"
 
     # Prazos por visita
     for v in visitas:
-        info[f"📅 {v['nome']}"] = (d0_dt + timedelta(days=v["dias"])).strftime("%d/%m/%Y")
+        if v["nome"] == visita_d0:
+            target_dt = d0_dt
+        else:
+            target_dt = d0_dt + timedelta(days=v["dias"])
+        info[f"📅 {v['nome']}"] = target_dt.strftime("%d/%m/%Y")
 
     dados_processados.append(info)
 
-    # Timeline — D0
+    # Timeline — Dia de Entrada
     dados_timeline.append({
         "Participante": p["nome"],
-        "Visita": "D0 (Inclusão)",
-        "Início": d0_dt,
-        "Fim": d0_dt + timedelta(days=1),
+        "Visita": f"{nome_entrada} (Inclusão)",
+        "Início": data_entrada_dt,
+        "Fim": data_entrada_dt + timedelta(days=1),
         "Estudo": estudo,
         "Status": "Concluído" if fi > 0 else "Atual"
     })
     # Timeline — visitas do protocolo deste estudo
     for idx_v, v in enumerate(visitas):
-        data_alvo = d0_dt + timedelta(days=v["dias"])
-        janela    = v.get("janela", 3)
+        if v["nome"] == visita_d0:
+            data_alvo = d0_dt
+        else:
+            data_alvo = d0_dt + timedelta(days=v["dias"])
+            
+        janela = v.get("janela", 3)
         st_vis = "Concluído" if fi > idx_v + 1 else ("Atual" if fi == idx_v + 1 else "Pendente")
         dados_timeline.append({
             "Participante": p["nome"],
@@ -803,12 +889,13 @@ with abas[1]:
                     st.markdown("---")
 
                     for _, row in pac_na_fase.iterrows():
+                        st_key = row.get("status_key", "ok")
                         status_txt = str(row.get("Status", ""))
-                        if fase == "Concluído":
+                        if st_key == "done":
                             badge = "badge-done";   badge_txt = "Concluído"
-                        elif "atraso" in status_txt.lower():
+                        elif st_key == "danger":
                             badge = "badge-danger"; badge_txt = status_txt
-                        elif "janela" in status_txt.lower() or "Em" in status_txt:
+                        elif st_key == "warn":
                             badge = "badge-warn";   badge_txt = status_txt
                         else:
                             badge = "badge-ok";     badge_txt = status_txt or "No prazo"
@@ -817,11 +904,12 @@ with abas[1]:
                             st.markdown(f"**👤 {row['Participante']}**")
                             st.markdown(f'<span class="{badge}">{badge_txt}</span>', unsafe_allow_html=True)
 
+                            nome_entrada = get_nome_entrada(estudo_k)
                             campo_prazo = f"📅 {fase}"
-                            if campo_prazo in row and fase not in ("D0 (Inclusão)", "Concluído"):
+                            if campo_prazo in row and fase != nome_entrada and fase != "Concluído":
                                 st.caption(f"📅 Prazo: {row[campo_prazo]}")
-                            elif fase == "D0 (Inclusão)":
-                                st.caption(f"🗓️ D0: {row['D0']}")
+                            elif fase == nome_entrada:
+                                st.caption(f"🗓️ Entrada: {row['D0']}")
 
                             obs = row.get("Observações", "")
                             if obs:
