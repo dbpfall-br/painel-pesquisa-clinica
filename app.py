@@ -53,6 +53,7 @@ st.markdown("""
         background: linear-gradient(180deg, #0E1117 0%, #151929 100%); 
     }
     
+    /* Títulos em branco */
     section[data-testid="stSidebar"] h1, 
     section[data-testid="stSidebar"] h2, 
     section[data-testid="stSidebar"] h3, 
@@ -62,25 +63,33 @@ st.markdown("""
         color: #FAFAFA !important; 
     }
     
-    section[data-testid="stSidebar"] p,
+    /* Textos informativos, markdown e labels em cinza claro */
     section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] span,
     section[data-testid="stSidebar"] summary,
-    section[data-testid="stSidebar"] .stMarkdown { 
+    section[data-testid="stSidebar"] .stMarkdown p,
+    section[data-testid="stSidebar"] .stMarkdown li,
+    section[data-testid="stSidebar"] .stMarkdown span { 
         color: #E2E8F0 !important; 
     }
 
-    /* Manter inputs, selectboxes e textareas com texto escuro para legibilidade nos campos brancos */
-    section[data-testid="stSidebar"] input { 
+    /* Garantir que botões mantenham texto escuro legível sobre seus fundos claros */
+    section[data-testid="stSidebar"] button,
+    section[data-testid="stSidebar"] button p,
+    section[data-testid="stSidebar"] button span {
+        color: #1A1D24 !important;
+    }
+
+    /* Garantir que inputs de texto e textareas mantenham texto escuro */
+    section[data-testid="stSidebar"] input,
+    section[data-testid="stSidebar"] textarea { 
         color: #1A1D24 !important; 
     }
+
+    /* Garantir que caixas de seleção (selectboxes/dropdowns) mantenham texto escuro */
     section[data-testid="stSidebar"] div[data-baseweb="select"] { 
         color: #1A1D24 !important; 
     }
     section[data-testid="stSidebar"] div[data-baseweb="select"] * { 
-        color: #1A1D24 !important; 
-    }
-    section[data-testid="stSidebar"] textarea { 
         color: #1A1D24 !important; 
     }
 
