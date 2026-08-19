@@ -516,37 +516,38 @@ with st.sidebar:
     st.divider()
 
     # ── SEÇÃO 2: NOVO PARTICIPANTE ───────────────────────────
-    st.markdown("## ➕ Novo Participante")
     if PAPEL == "Monitor/Leitor":
+        st.markdown("## ➕ Novo Participante")
         st.info("🔒 Apenas Administradores e Coordenadores podem cadastrar novos participantes.")
     else:
-        if lista_estudos:
-            with st.form("form_paciente", clear_on_submit=True):
-                novo_nome   = st.text_input("Identificação/Iniciais:", placeholder="Ex: J.S.M.")
-                novo_estudo = st.selectbox("Estudo:", lista_estudos)
-                nova_d0     = st.date_input("Data do D0:", datetime.today())
-                nova_obs    = st.text_area("Observações:", height=60, placeholder="Anotações...")
-                submit      = st.form_submit_button("📥 Inserir Participante")
+        with st.expander("➕ Novo Participante", expanded=False):
+            if lista_estudos:
+                with st.form("form_paciente", clear_on_submit=True):
+                    novo_nome   = st.text_input("Identificação/Iniciais:", placeholder="Ex: J.S.M.")
+                    novo_estudo = st.selectbox("Estudo:", lista_estudos)
+                    nova_d0     = st.date_input("Data do D0:", datetime.today())
+                    nova_obs    = st.text_area("Observações:", height=60, placeholder="Anotações...")
+                    submit      = st.form_submit_button("📥 Inserir Participante")
 
-                if submit:
-                    if not novo_nome.strip():
-                        st.error("Informe a identificação.")
-                    else:
-                        novo_p = {
-                            "id": proximo_id(),
-                            "nome": novo_nome.strip(),
-                            "estudo": novo_estudo,
-                            "d0": str(nova_d0),
-                            "fase_index": 0,
-                            "observacoes": nova_obs.strip()
-                        }
-                        st.session_state.pacientes.append(novo_p)
-                        registrar_log("Cadastro de Participante", f"Cadastrado '{novo_nome.strip()}' (ID:{novo_p['id']}) no estudo '{novo_estudo}' com D0 '{nova_d0}'")
-                        persistir()
-                        st.success(f"{novo_nome} adicionado!")
-                        st.rerun()
-        else:
-            st.info("Crie um estudo antes de adicionar participantes.")
+                    if submit:
+                        if not novo_nome.strip():
+                            st.error("Informe a identificação.")
+                        else:
+                            novo_p = {
+                                "id": proximo_id(),
+                                "nome": novo_nome.strip(),
+                                "estudo": novo_estudo,
+                                "d0": str(nova_d0),
+                                "fase_index": 0,
+                                "observacoes": nova_obs.strip()
+                            }
+                            st.session_state.pacientes.append(novo_p)
+                            registrar_log("Cadastro de Participante", f"Cadastrado '{novo_nome.strip()}' (ID:{novo_p['id']}) no estudo '{novo_estudo}' com D0 '{nova_d0}'")
+                            persistir()
+                            st.success(f"{novo_nome} adicionado!")
+                            st.rerun()
+            else:
+                st.info("Crie um estudo antes de adicionar participantes.")
 
     st.divider()
 
@@ -554,11 +555,25 @@ with st.sidebar:
     st.markdown("## 🔍 Filtros de Visualização")
     estudos_disponiveis = sorted(set(p["estudo"] for p in st.session_state.pacientes)) if st.session_state.pacientes else []
     filtro_estudos = st.multiselect("Estudos:", estudos_disponiveis, default=estudos_disponiveis, key="filtro_estudos")
+    
+    # Participantes disponíveis com base nos estudos selecionados
+    participantes_disponiveis = []
+    if st.session_state.pacientes:
+        participantes_disponiveis = sorted(list(set(
+            p["nome"] for p in st.session_state.pacientes if p["estudo"] in filtro_estudos
+        )))
+    
+    filtro_participantes = st.multiselect(
+        "Participantes:",
+        participantes_disponiveis,
+        default=[],
+        key="filtro_participantes",
+        help="Deixe em branco para exibir todos os participantes dos estudos selecionados"
+    )
 
 # ============================================================
 # PROCESSAMENTO DOS DADOS
 # ============================================================
-contagem_status = {"ok": 0, "warn": 0, "danger": 0, "done": 0}
 dados_processados = []
 dados_timeline    = []
 
@@ -582,7 +597,7 @@ for p in st.session_state.pacientes:
     # Status
     if fase_atual == "Concluído":
         info["Status"] = "✅ Concluído"
-        contagem_status["done"] += 1
+        info["status_key"] = "done"
     else:
         visita_idx = fi - 1  # fase 0 = D0, fase 1 = visita[0], etc.
         if 0 <= visita_idx < len(visitas):
@@ -591,10 +606,10 @@ for p in st.session_state.pacientes:
             st_key, dias_r, texto = calcular_status(data_alvo, v_cfg["janela"])
             info["Status"] = texto
             info["Dias Restantes"] = dias_r
-            contagem_status[st_key] += 1
+            info["status_key"] = st_key
         else:
             info["Status"] = "📋 Em D0"
-            contagem_status["ok"] += 1
+            info["status_key"] = "ok"
 
     # Prazos por visita
     for v in visitas:
@@ -629,9 +644,20 @@ df = pd.DataFrame(dados_processados) if dados_processados else pd.DataFrame()
 df_timeline = pd.DataFrame(dados_timeline) if dados_timeline else pd.DataFrame()
 
 # Aplicar filtros
-if not df.empty and filtro_estudos:
-    df_filtrado = df[df["Estudo"].isin(filtro_estudos)]
-    df_tl       = df_timeline[df_timeline["Estudo"].isin(filtro_estudos)] if not df_timeline.empty else pd.DataFrame()
+if not df.empty:
+    # 1. Filtro de Estudos
+    if filtro_estudos:
+        df_filtrado = df[df["Estudo"].isin(filtro_estudos)]
+        df_tl       = df_timeline[df_timeline["Estudo"].isin(filtro_estudos)] if not df_timeline.empty else pd.DataFrame()
+    else:
+        df_filtrado = df
+        df_tl       = df_timeline
+
+    # 2. Filtro de Participantes (em conjunto com o de estudos)
+    if filtro_participantes:
+        df_filtrado = df_filtrado[df_filtrado["Participante"].isin(filtro_participantes)]
+        if not df_tl.empty:
+            df_tl   = df_tl[df_tl["Participante"].isin(filtro_participantes)]
 else:
     df_filtrado = df
     df_tl       = df_timeline
@@ -640,9 +666,9 @@ else:
 # KPIs
 # ============================================================
 total      = len(df_filtrado)
-concluidos = contagem_status["done"]
-atrasados  = contagem_status["danger"]
-alertas    = contagem_status["warn"]
+concluidos = len(df_filtrado[df_filtrado["status_key"] == "done"]) if total > 0 else 0
+atrasados  = len(df_filtrado[df_filtrado["status_key"] == "danger"]) if total > 0 else 0
+alertas    = len(df_filtrado[df_filtrado["status_key"] == "warn"]) if total > 0 else 0
 compliance = round((total - atrasados) / total * 100, 1) if total > 0 else 0
 
 k1, k2, k3, k4, k5 = st.columns(5)
