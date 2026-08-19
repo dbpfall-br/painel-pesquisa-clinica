@@ -884,8 +884,12 @@ with abas[2]:
             st.markdown("##### 📊 Status dos Participantes")
             df_st = pd.DataFrame({
                 "Status":    ["No Prazo", "Em Alerta", "Atrasado", "Concluído"],
-                "Quantidade":[contagem_status["ok"], contagem_status["warn"],
-                              contagem_status["danger"], contagem_status["done"]]
+                "Quantidade":[
+                    len(df_filtrado[df_filtrado["status_key"] == "ok"]) if not df_filtrado.empty else 0,
+                    len(df_filtrado[df_filtrado["status_key"] == "warn"]) if not df_filtrado.empty else 0,
+                    len(df_filtrado[df_filtrado["status_key"] == "danger"]) if not df_filtrado.empty else 0,
+                    len(df_filtrado[df_filtrado["status_key"] == "done"]) if not df_filtrado.empty else 0
+                ]
             })
             fig_bar = px.bar(df_st, x="Status", y="Quantidade", color="Status", text="Quantidade",
                              color_discrete_map={"No Prazo":"#00c853","Em Alerta":"#ffab00","Atrasado":"#ff1744","Concluído":"#6C63FF"})
