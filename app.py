@@ -24,6 +24,7 @@ st.markdown("""
 <style>
     .block-container { padding-top: 1.5rem; }
 
+    /* Ajuste de contraste para stMetric (KPIs) */
     div[data-testid="stMetric"] {
         background: linear-gradient(135deg, #1a1d2e 0%, #252840 100%);
         border: 1px solid rgba(108, 99, 255, 0.2);
@@ -31,15 +32,58 @@ st.markdown("""
         padding: 16px 20px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
-    div[data-testid="stMetric"] label { font-size: 0.85rem !important; color: #a0a3b5 !important; }
-    div[data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 2rem !important; font-weight: 700 !important; }
+    div[data-testid="stMetric"] label { 
+        font-size: 0.85rem !important; 
+        color: #A0A3B5 !important; 
+        font-weight: 500 !important;
+    }
+    div[data-testid="stMetric"] [data-testid="stMetricValue"] { 
+        font-size: 2rem !important; 
+        font-weight: 700 !important;
+        color: #FFFFFF !important; 
+    }
 
     .badge-ok   { background:#00c853; color:white;   padding:2px 8px; border-radius:10px; font-size:.75rem; font-weight:600; }
     .badge-warn { background:#ffab00; color:#1a1a1a; padding:2px 8px; border-radius:10px; font-size:.75rem; font-weight:600; }
     .badge-danger{ background:#ff1744; color:white;  padding:2px 8px; border-radius:10px; font-size:.75rem; font-weight:600; }
     .badge-done { background:#6C63FF; color:white;   padding:2px 8px; border-radius:10px; font-size:.75rem; font-weight:600; }
 
-    section[data-testid="stSidebar"] { background: linear-gradient(180deg, #0E1117 0%, #151929 100%); }
+    /* Ajuste de contraste para a Barra Lateral (Sidebar) Escura */
+    section[data-testid="stSidebar"] { 
+        background: linear-gradient(180deg, #0E1117 0%, #151929 100%); 
+    }
+    
+    section[data-testid="stSidebar"] h1, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h3, 
+    section[data-testid="stSidebar"] h4,
+    section[data-testid="stSidebar"] h5,
+    section[data-testid="stSidebar"] h6 { 
+        color: #FAFAFA !important; 
+    }
+    
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] summary,
+    section[data-testid="stSidebar"] .stMarkdown { 
+        color: #E2E8F0 !important; 
+    }
+
+    /* Manter inputs, selectboxes e textareas com texto escuro para legibilidade nos campos brancos */
+    section[data-testid="stSidebar"] input { 
+        color: #1A1D24 !important; 
+    }
+    section[data-testid="stSidebar"] div[data-baseweb="select"] { 
+        color: #1A1D24 !important; 
+    }
+    section[data-testid="stSidebar"] div[data-baseweb="select"] * { 
+        color: #1A1D24 !important; 
+    }
+    section[data-testid="stSidebar"] textarea { 
+        color: #1A1D24 !important; 
+    }
+
     .stTabs [data-baseweb="tab-list"] { gap: 8px; }
     .stTabs [data-baseweb="tab"] { border-radius: 8px 8px 0 0; padding: 8px 20px; }
 
