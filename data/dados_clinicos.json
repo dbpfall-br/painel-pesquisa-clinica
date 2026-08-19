@@ -1,0 +1,155 @@
+{
+  "estudos": {
+    "Estudo Alfa": {
+      "visitas": [
+        {
+          "nome": "Visita 1 (Screening)",
+          "dias": 7,
+          "janela": 3
+        },
+        {
+          "nome": "Visita 2 (Baseline)",
+          "dias": 30,
+          "janela": 5
+        }
+      ]
+    },
+    "Estudo Beta": {
+      "visitas": [
+        {
+          "nome": "Triagem",
+          "dias": 14,
+          "janela": 5
+        },
+        {
+          "nome": "Avaliação Parcial",
+          "dias": 45,
+          "janela": 7
+        },
+        {
+          "nome": "Follow-up Final",
+          "dias": 90,
+          "janela": 10
+        }
+      ]
+    },
+    "Estudo 01": {
+      "visitas": [
+        {
+          "nome": "Visita 1",
+          "dias": 7,
+          "janela": 3
+        },
+        {
+          "nome": "Visita 2",
+          "dias": 30,
+          "janela": 5
+        }
+      ]
+    }
+  },
+  "pacientes": [
+    {
+      "id": 1,
+      "nome": "Voluntário A",
+      "estudo": "Estudo Alfa",
+      "d0": "2026-08-10",
+      "fase_index": 0,
+      "observacoes": ""
+    },
+    {
+      "id": 2,
+      "nome": "Voluntário B",
+      "estudo": "Estudo Alfa",
+      "d0": "2026-08-01",
+      "fase_index": 2,
+      "observacoes": ""
+    },
+    {
+      "id": 3,
+      "nome": "Voluntário C",
+      "estudo": "Estudo Beta",
+      "d0": "2026-07-15",
+      "fase_index": 2,
+      "observacoes": "Acompanhamento especial"
+    },
+    {
+      "id": 4,
+      "nome": "JSM",
+      "estudo": "Estudo 01",
+      "d0": "2026-08-18",
+      "fase_index": 0,
+      "observacoes": ""
+    }
+  ],
+  "usuarios": {
+    "Admin": {
+      "senha_hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+      "papel": "Administrador"
+    },
+    "coord": {
+      "senha_hash": "8c63a2fc2b14d8ae6f9d0bf2e2c4227ac2dc4bd84768e1259226b0c3d84f1c65",
+      "papel": "Coordenador"
+    },
+    "leitor": {
+      "senha_hash": "5bb586e91c868fc9a5f274046be699d1ed7059b29e5195025a1882a17831152f",
+      "papel": "Monitor/Leitor"
+    }
+  },
+  "log_auditoria": [
+    {
+      "timestamp": "2026-08-19 08:53:51",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-18 23:06:35",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-18 22:56:51",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-18 22:53:30",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-18 22:41:02",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-18 22:38:27",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-18 22:31:28",
+      "usuario": "Admin",
+      "acao": "Logout",
+      "detalhes": "Usuário deslogou do sistema."
+    },
+    {
+      "timestamp": "2026-08-18 22:30:37",
+      "usuario": "Admin",
+      "acao": "Login",
+      "detalhes": "Usuário realizou login com sucesso com o papel 'Administrador'"
+    },
+    {
+      "timestamp": "2026-08-18 22:12:00",
+      "usuario": "Sistema",
+      "acao": "Inicialização",
+      "detalhes": "Banco de dados inicializado com suporte a multi-usuários, RBAC e trilha de auditoria."
+    }
+  ]
+}
