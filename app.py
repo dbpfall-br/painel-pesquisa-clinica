@@ -134,7 +134,7 @@ def carregar_dados():
             ],
             "usuarios": {
                 "Admin": {
-                    "senha_hash": hash_senha("admin123"),
+                    "senha_hash": hash_senha("Admin123"),
                     "papel": "Administrador"
                 },
                 "coord": {
